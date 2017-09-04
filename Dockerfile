@@ -1,17 +1,15 @@
-FROM        ubuntu:14.04
-MAINTAINER  wangjian <njtobj@163.com>
+FROM ubuntu:trusty
 
-RUN apt-key update && apt-get update
-RUN apt-get install -y build-essential perl python git wget
-RUN apt-get install -y libGL-dev
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+RUN apt-get update && apt-get install -y software-properties-common python-software-properties && add-apt-repository ppa:beineri/opt-qt56-trusty
+RUN apt-get update && apt-get install -y git qt56-meta-full build-essential mesa-common-dev libglu1-mesa-dev && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir /inst && cd /inst && wget \
-  http://download.qt.io/official_releases/qt/5.9/5.9.0/single/qt-everywhere-opensource-src-5.9.0.tar.xz
-RUN mkdir /src && cd /src && tar -xvf /inst/qt-everywhere-opensource-src-5.9.0.tar.xz
-RUN mv /src/qt-everywhere-opensource-src-5.9.0 /src/qt
-RUN cd /src/qt && ./configure \
-  -confirm-license -opensource \
-  -nomake examples -nomake tests -no-compile-examples \
-  -no-xcb \
-  -prefix "/usr/local/Qt"
-RUN cd /src/qt && make -j4 all
+ENV QT_BASE_DIR=/opt/qt56
+ENV QTDIR=$QT_BASE_DIR
+ENV PATH=$QT_BASE_DIR/bin:$PATH
+ENV LD_LIBRARY_PATH=$QT_BASE_DIR/lib/x86_64-linux-gnu:$QT_BASE_DIR/lib:$LD_LIBRARY_PATH
+ENV PKG_CONFIG_PATH=$QT_BASE_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+
+WORKDIR /usr/src
+
+CMD ["/bin/bash"]
