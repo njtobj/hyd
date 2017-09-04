@@ -3,7 +3,7 @@ FROM ubuntu:trusty
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository ppa:beineri/opt-qt59-trusty
-RUN apt-get update && apt-get install -y build-essential git mesa-common-dev libglu1-mesa-dev qt59-meta-full qt59webengine
+RUN apt-get update && apt-get install -y build-essential git mesa-common-dev libglu1-mesa-dev qt59-meta-full
 RUN rm -rf /var/lib/apt/lists/*
 
 ENV QT_BASE_DIR=/opt/qt59 
