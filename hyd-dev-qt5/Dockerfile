@@ -1,4 +1,5 @@
 FROM ubuntu:trusty
+MAINTAINER njtobj <cnjsnjjn@163.com> (@njtobj)
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN apt-get update && apt-get install -y software-properties-common
