@@ -2,11 +2,11 @@ FROM ubuntu:trusty
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN apt-get update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:beineri/opt-qt56-trusty
-RUN apt-get update && apt-get install -y build-essential git mesa-common-dev libglu1-mesa-dev qt56-meta-full qt56webengine
+RUN add-apt-repository ppa:beineri/opt-qt59-trusty
+RUN apt-get update && apt-get install -y build-essential git mesa-common-dev libglu1-mesa-dev qt59-meta-full qt59webengine
 RUN rm -rf /var/lib/apt/lists/*
 
-ENV QT_BASE_DIR=/opt/qt56 
+ENV QT_BASE_DIR=/opt/qt59 
 ENV QTDIR=$QT_BASE_DIR 
 ENV PATH=$QT_BASE_DIR/bin:$PATH 
 ENV LD_LIBRARY_PATH=$QT_BASE_DIR/lib/x86_64-linux-gnu:$QT_BASE_DIR/lib:$LD_LIBRARY_PATH 
