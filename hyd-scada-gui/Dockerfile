@@ -43,4 +43,4 @@ EXPOSE 80
 WORKDIR /root
 ENV HOME=/home/ubuntu \
     SHELL=/bin/bash
-ENTRYPOINT ["/startup.sh"]
+#ENTRYPOINT ["/startup.sh"]
