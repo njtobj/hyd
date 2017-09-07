@@ -1,0 +1,39 @@
+FROM ubuntu:trusty
+MAINTAINER njtobj <cnjsnjjn@163.com> (@njtobj)
+
+RUN apt-get update -y && apt-get upgrade -y && apt-get install -y \
+		libgtk2.0-dev \
+		libgl1-mesa-dev \
+		libmysqlclient-dev \
+		firefox \
+		lxde-core \
+		lxterminal \
+		tightvncserver \
+		xrdp
+	--no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+RUN /usr/share/locales/install-language-pack en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8  
+ENV LANG=en_US.UTF-8  
+
+VOLUME ["/hyd-scada"]
+
+ENV DEBIAN_FRONTEND noninteractive
+
+
+# Set user for VNC server (USER is only for build)
+ENV USER root
+
+# Set default password
+COPY password.txt .
+RUN cat password.txt password.txt | vncpasswd && \
+  rm password.txt
+# Expose VNC port
+EXPOSE 5901
+
+# Set XDRP to use TightVNC port
+RUN sed -i '0,/port=-1/{s/port=-1/port=5901/}' /etc/xrdp/xrdp.ini
+
+# Copy VNC script that handles restarts
+COPY vnc.sh /opt/
+CMD ["/opt/vnc.sh"]
