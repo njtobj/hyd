@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
 		libmysqlclient-dev \
 	--no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-ENV LC_ALL=zh_CN.UTF-8  
-ENV LANG=zh_CN.UTF-8  
+RUN /usr/share/locales/install-language-pack en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8  
+ENV LANG=en_US.UTF-8  
 
 VOLUME ["/hyd-scada"]
