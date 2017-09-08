@@ -45,6 +45,6 @@ ENV HOME=/home/ubuntu \
     SHELL=/bin/bash
 	
 RUN chmod +x /startup.sh	
-RUN chmod +x /usr/lib/run.py
+RUN chmod +x /usr/lib/web/run.py
 
 ENTRYPOINT ["/startup.sh"]
