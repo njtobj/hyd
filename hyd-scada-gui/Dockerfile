@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:16.04
 MAINTAINER njtobj <cnjsnjjn@163.com> (@njtobj)
 
 ENV DEBIAN_FRONTEND noninteractive
