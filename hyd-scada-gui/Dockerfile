@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:trusty
 MAINTAINER njtobj <cnjsnjjn@163.com> (@njtobj)
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -26,6 +26,9 @@ RUN apt-get update \
         mesa-utils libgl1-mesa-dri \
         gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine pinta arc-theme \
         dbus-x11 x11-utils \
+		libgtk2.0-dev \
+		libgl1-mesa-dev \
+		libmysqlclient-dev \
     && apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
