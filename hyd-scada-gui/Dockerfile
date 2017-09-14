@@ -34,6 +34,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 
+RUN /usr/share/locales/install-language-pack en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8  
+ENV LANG=en_US.UTF-8  
+
 # tini for subreap                                   
 ENV TINI_VERSION v0.9.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
