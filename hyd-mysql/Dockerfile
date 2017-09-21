@@ -57,7 +57,7 @@ ENV PATH $PATH:/usr/local/mysql/bin:/usr/local/mysql/scripts
 RUN mkdir -p /etc/mysql/conf.d \
 	&& { \
 		echo '[mysqld]'; \
-		echo 'lower_case_table_names = 0'; \
+		echo 'lower_case_table_names = 1'; \
 		echo 'skip-host-cache'; \
 		echo 'skip-name-resolve'; \
 		echo 'datadir = /var/lib/mysql'; \
