@@ -58,6 +58,8 @@ RUN mkdir -p /etc/mysql/conf.d \
 	&& { \
 		echo '[mysqld]'; \
 		echo 'lower_case_table_names = 1'; \
+		echo 'character_set_server = utf8'; \
+		echo 'init_connect = "SET NAMES utf8"'; \
 		echo 'skip-host-cache'; \
 		echo 'skip-name-resolve'; \
 		echo 'datadir = /var/lib/mysql'; \
