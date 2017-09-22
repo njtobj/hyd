@@ -29,6 +29,9 @@ RUN apt-get update \
 		libgtk2.0-dev \
 		libgl1-mesa-dev \
 		libmysqlclient-dev \
+		libpulse-dev \
+		bison \
+		flex \
     && apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
