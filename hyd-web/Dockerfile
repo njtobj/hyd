@@ -130,10 +130,6 @@ RUN set -eux; \
 	apk add --virtual .httpd-rundeps $runDeps; \
 	apk del .build-deps
 
-RUN apt-get update && apt-get install -y \
-		gettext \
-		mysql-client libmysqlclient-dev \
-	--no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 RUN pip install mysqlclient django=="$DJANGO_VERSION"
 
