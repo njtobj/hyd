@@ -57,6 +57,7 @@ RUN set -eux; \
 		openssl-dev \
 		pcre-dev \
 		tar \
+		libmysqlclient-dev \
 # install GNU wget (Busybox wget in Alpine 3.4 gives us "wget: error getting response: Connection reset by peer" for some reason)
 		wget \
 	; \
