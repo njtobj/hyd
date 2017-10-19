@@ -22,6 +22,7 @@ WORKDIR $HTTPD_PREFIX
 ENV HTTPD_VERSION 2.4.23
 ENV HTTPD_SHA1 5101be34ac4a509b245adb70a56690a84fcc4e7f
 ENV HTTPD_BZ2_URL https://www.apache.org/dist/httpd/httpd-$HTTPD_VERSION.tar.bz2
+ENV DJANGO_VERSION 1.10.4
 
 # see https://httpd.apache.org/docs/2.4/install.html#requirements
 RUN set -x \
@@ -44,6 +45,10 @@ RUN set -x \
 		py-pip \
 		tar \
 		gettext \
+		python-dev \
+		musl-dev \
+		libxml2-dev \
+		libxslt-dev \
 		mysql-client libmysqlclient-dev \
 	\
 	&& wget -O httpd.tar.bz2 "$HTTPD_BZ2_URL" \
@@ -85,19 +90,10 @@ RUN set -x \
 	&& apk add --virtual .httpd-rundeps $runDeps \
 	&& apk del .build-deps
 
-# this dependencies will be needed by pip packages
-RUN apk add --no-cache gcc \
-        postgresql-dev \
-		python-dev \
-		musl-dev \
-		libxml2-dev \
-		libxslt-dev
 
 COPY httpd-foreground /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/httpd-foreground
-
-ENV DJANGO_VERSION 1.10.4
 
 RUN pip install mysqlclient psycopg2 django=="$DJANGO_VERSION"
 
