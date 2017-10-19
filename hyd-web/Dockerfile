@@ -1,17 +1,21 @@
-FROM python:2.7-alpine
-MAINTAINER njtobj <cnjsnjjn@163.com> (@njtobj)
+FROM python:2.7-slim
 
-# This image is based on the official python2-alpine image: https://github.com/docker-library/python/tree/ac647c4b59919136759da632acf231933e022492/2.7/alpine 
-# and the official apache-alpine image: https://github.com/docker-library/httpd/tree/12bf8c8883340c98b3988a7bade8ef2d0d6dcf8a/2.4/alpine
+RUN apt-get update && apt-get install -y \
+		gcc \
+		gettext \
+		mysql-client libmysqlclient-dev \
+		libapr1 \
+		libaprutil1 \
+		libaprutil1-ldap \
+		libapr1-dev \
+		libaprutil1-dev \
+		libpcre++0 \
+		libssl1.0.0 \
+	--no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-# ensure www-data user exists
-RUN set -x \
-	&& addgroup -g 82 -S www-data \
-	&& adduser -u 82 -D -S -G www-data www-data
-# 82 is the standard uid/gid for "www-data" in Alpine
-# http://git.alpinelinux.org/cgit/aports/tree/main/apache2/apache2.pre-install?h=v3.3.2
-# http://git.alpinelinux.org/cgit/aports/tree/main/lighttpd/lighttpd.pre-install?h=v3.3.2
-# http://git.alpinelinux.org/cgit/aports/tree/main/nginx-initscripts/nginx-initscripts.pre-install?h=v3.3.2
+ENV DJANGO_VERSION 1.8.6
+
+RUN pip install mysqlclient django=="$DJANGO_VERSION"
 
 ENV HTTPD_PREFIX /usr/local/apache2
 ENV PATH $HTTPD_PREFIX/bin:$PATH
@@ -33,34 +37,22 @@ ENV APACHE_DIST_URLS \
 	https://www.apache.org/dist/ \
 	https://archive.apache.org/dist/
 
-ENV DJANGO_VERSION 1.10.4
-
 # see https://httpd.apache.org/docs/2.2/install.html#requirements
 RUN set -eux; \
 	\
-	runDeps=' \
-		apr-dev \
-		apr-util-dev \
-		apr-util-ldap \
-		perl \
-	'; \
-	apk add --no-cache --virtual .build-deps \
-		$runDeps \
+	buildDeps=' \
+		bzip2 \
 		ca-certificates \
-		coreutils \
-		dpkg-dev dpkg \
+		dpkg-dev \
 		gcc \
-		gnupg \
-		libc-dev \
+		libpcre++-dev \
+		libssl-dev \
 		make \
-		openssl \
-		openssl-dev \
-		pcre-dev \
-		tar \
-		libmysqlclient-dev \
-# install GNU wget (Busybox wget in Alpine 3.4 gives us "wget: error getting response: Connection reset by peer" for some reason)
 		wget \
-	; \
+	'; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends -V $buildDeps; \
+	rm -r /var/lib/apt/lists/*; \
 	\
 	ddist() { \
 		local f="$1"; shift; \
@@ -122,24 +114,9 @@ RUN set -eux; \
 		-e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
 		"$HTTPD_PREFIX/conf/httpd.conf"; \
 	\
-	runDeps="$runDeps $( \
-		scanelf --needed --nobanner --format '%n#p' --recursive /usr/local \
-			| tr ',' '\n' \
-			| sort -u \
-			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-	)"; \
-	apk add --virtual .httpd-rundeps $runDeps; \
-	apk del .build-deps
-
-
-RUN pip install mysqlclient django=="$DJANGO_VERSION"
+	apt-get purge -y --auto-remove $buildDeps
 
 COPY httpd-foreground /usr/local/bin/
 
 EXPOSE 80
 CMD ["httpd-foreground"]
-
-
-
-
-
