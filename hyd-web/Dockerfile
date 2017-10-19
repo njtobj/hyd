@@ -130,12 +130,19 @@ RUN set -eux; \
 	apk add --virtual .httpd-rundeps $runDeps; \
 	apk del .build-deps
 
-RUN pip install mysqlclient psycopg2 django=="$DJANGO_VERSION"
+RUN apt-get update && apt-get install -y \
+		gettext \
+		mysql-client libmysqlclient-dev \
+	--no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+RUN pip install mysqlclient django=="$DJANGO_VERSION"
 
 COPY httpd-foreground /usr/local/bin/
 
 EXPOSE 80
 CMD ["httpd-foreground"]
+
+
 
 
 
