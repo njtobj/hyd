@@ -3,5 +3,7 @@ set -e
 
 # Apache gets grumpy about PID files pre-existing
 rm -f /usr/local/apache2/logs/httpd.pid
+ln -s /var/www/websvr/apache/apache_django_wsgi.conf /usr/local/apache2/conf/httpd.conf
+
 
 exec httpd -DFOREGROUND
