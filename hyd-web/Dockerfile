@@ -11,7 +11,7 @@ RUN mv /etc/apt/sources.list /etc/apt/sources.list.bak && \
 	echo "deb-src http://mirrors.163.com/debian-security/ jessie/updates main non-free contrib" >>/etc/apt/sources.list 
 
 	
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get  -f install -y \
 		gcc \
 		gettext \
 		mysql-client libmysqlclient-dev \
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
 		libaprutil1-dev \
 		libpcre++0 \
 		libssl1.0.0 \
-	 && rm -rf /var/lib/apt/lists/*
+	--no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 ENV DJANGO_VERSION 1.8.6
 
