@@ -22,13 +22,7 @@ RUN apt-get update && apt-get install -y \
 		libaprutil1-dev \
 		libpcre++0 \
 		libssl1.0.0 \
-		libncurses5 \
-		uuid-dev \
-		libsctp-dev \
-		libexpat1-dev \
-		zlib1g-dev \
-		mysql-client-5.5 \
-	--no-install-recommends && rm -rf /var/lib/apt/lists/*
+	 && rm -rf /var/lib/apt/lists/*
 
 ENV DJANGO_VERSION 1.8.6
 
