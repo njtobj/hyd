@@ -257,4 +257,3 @@ RUN set -eux; \
 
 EXPOSE 80
 
-CMD ["sh /var/www/run"]
