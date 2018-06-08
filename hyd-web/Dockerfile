@@ -255,8 +255,8 @@ RUN set -eux; \
 	apt-get purge -y --auto-remove $buildDeps
 
 	
-COPY httpd-foreground /usr/local/bin/
-RUN  chmod +x /usr/local/bin/httpd-foreground 
+
+RUN  chmod +x /var/www/run 
 EXPOSE 80
 
-CMD ["httpd-foreground"]
+CMD ["/var/www/run"]
