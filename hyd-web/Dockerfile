@@ -1,123 +1,108 @@
-FROM python:2.7-slim
+FROM debian:jessie-slim
 
-RUN apt-get update && apt-get  -f install -y \
-		gcc \
-		gettext \
-		mysql-client libmysqlclient-dev \
-		libapr1 \
-		libaprutil1 \
-		libaprutil1-ldap \
-		libapr1-dev \
-		libaprutil1-dev \
-		libpcre++0 \
-		libssl1.0.0 \
-	--no-install-recommends && rm -rf /var/lib/apt/lists/*
+# ensure local python is preferred over distribution python
+ENV PATH /usr/local/bin:$PATH
 
-ENV DJANGO_VERSION 1.8.6
+# http://bugs.python.org/issue19846
+# > At the moment, setting "LANG=C" on a Linux system *fundamentally breaks Python 3*, and that's not OK.
+ENV LANG C.UTF-8
+# https://github.com/docker-library/python/issues/147
+ENV PYTHONIOENCODING UTF-8
 
-RUN pip install mysqlclient django=="$DJANGO_VERSION"
-
-ENV HTTPD_PREFIX /usr/local/apache2
-ENV PATH $HTTPD_PREFIX/bin:$PATH
-RUN mkdir -p "$HTTPD_PREFIX" \
-	&& chown www-data:www-data "$HTTPD_PREFIX"
-WORKDIR $HTTPD_PREFIX
-
-ENV HTTPD_VERSION 2.2.34
-ENV HTTPD_SHA256 e53183d5dfac5740d768b4c9bea193b1099f4b06b57e5f28d7caaf9ea7498160
-
-# https://httpd.apache.org/security/vulnerabilities_22.html
-ENV HTTPD_PATCHES="CVE-2017-9798-patch-2.2.patch 42c610f8a8f8d4d08664db6d9857120c2c252c9b388d56f238718854e6013e46"
-
-ENV APACHE_DIST_URLS \
-# https://issues.apache.org/jira/browse/INFRA-8753?focusedCommentId=14735394#comment-14735394
-	https://www.apache.org/dyn/closer.cgi?action=download&filename= \
-# if the version is outdated (or we're grabbing the .asc file), we might have to pull from the dist/archive :/
-	https://www-us.apache.org/dist/ \
-	https://www.apache.org/dist/ \
-	https://archive.apache.org/dist/
-
-# see https://httpd.apache.org/docs/2.2/install.html#requirements
-RUN set -eux; \
-	\
-	buildDeps=' \
-		bzip2 \
+# runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
 		ca-certificates \
+		libgdbm3 \
+		libreadline6 \
+		mysql-client \
+		libmysqlclient-dev \
+		libssl1.0.0 \
+		netbase \
+	&& rm -rf /var/lib/apt/lists/*
+
+ENV GPG_KEY C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF
+ENV PYTHON_VERSION 2.7.15
+ENV DJANGO_VERSION 1.10.4
+
+RUN pip install mysqlclient psycopg2 django=="$DJANGO_VERSION"
+
+RUN set -ex \
+	&& buildDeps=" \
 		dpkg-dev \
 		gcc \
-		libpcre++-dev \
+		libbz2-dev \
+		libc6-dev \
+		libdb-dev \
+		libgdbm-dev \
+		libncursesw5-dev \
+		libreadline-dev \
+		libmysqlclient-dev \
 		libssl-dev \
 		make \
+		tcl-dev \
+		tk-dev \
 		wget \
-	'; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends -V $buildDeps; \
-	rm -r /var/lib/apt/lists/*; \
+		xz-utils \
+		zlib1g-dev \
+# as of Stretch, "gpg" is no longer included by default
+		$(command -v gpg > /dev/null || echo 'gnupg dirmngr') \
+	" \
+	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
 	\
-	ddist() { \
-		local f="$1"; shift; \
-		local distFile="$1"; shift; \
-		local success=; \
-		local distUrl=; \
-		for distUrl in $APACHE_DIST_URLS; do \
-			if wget -O "$f" "$distUrl$distFile"; then \
-				success=1; \
-				break; \
-			fi; \
-		done; \
-		[ -n "$success" ]; \
-	}; \
+	&& wget -O python.tar.xz "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" \
+	&& wget -O python.tar.xz.asc "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPG_KEY" \
+	&& gpg --batch --verify python.tar.xz.asc python.tar.xz \
+	&& rm -rf "$GNUPGHOME" python.tar.xz.asc \
+	&& mkdir -p /usr/src/python \
+	&& tar -xJC /usr/src/python --strip-components=1 -f python.tar.xz \
+	&& rm python.tar.xz \
 	\
-	ddist 'httpd.tar.bz2' "httpd/httpd-$HTTPD_VERSION.tar.bz2"; \
-	echo "$HTTPD_SHA256 *httpd.tar.bz2" | sha256sum -c -; \
-	\
-# see https://httpd.apache.org/download.cgi#verify
-	ddist 'httpd.tar.bz2.asc' "httpd/httpd-$HTTPD_VERSION.tar.bz2.asc"; \
-	export GNUPGHOME="$(mktemp -d)"; \
-	gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B1B96F45DFBDCCF974019235193F180AB55D9977; \
-	gpg --batch --verify httpd.tar.bz2.asc httpd.tar.bz2; \
-	rm -rf "$GNUPGHOME" httpd.tar.bz2.asc; \
-	\
-	mkdir -p src; \
-	tar -xf httpd.tar.bz2 -C src --strip-components=1; \
-	rm httpd.tar.bz2; \
-	cd src; \
-	\
-	patches() { \
-		while [ "$#" -gt 0 ]; do \
-			local patchFile="$1"; shift; \
-			local patchSha256="$1"; shift; \
-			ddist "$patchFile" "httpd/patches/apply_to_$HTTPD_VERSION/$patchFile"; \
-			echo "$patchSha256 *$patchFile" | sha256sum -c -; \
-			patch -p0 < "$patchFile"; \
-			rm -f "$patchFile"; \
-		done; \
-	}; \
-	patches $HTTPD_PATCHES; \
-	\
-	gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
-	./configure \
+	&& cd /usr/src/python \
+	&& gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+	&& ./configure \
 		--build="$gnuArch" \
-		--prefix="$HTTPD_PREFIX" \
-# https://httpd.apache.org/docs/2.2/programs/configure.html
-# Caveat: --enable-mods-shared=all does not actually build all modules. To build all modules then, one might use:
-		--enable-mods-shared='all ssl ldap cache proxy authn_alias mem_cache file_cache authnz_ldap charset_lite dav_lock disk_cache' \
+		--enable-shared \
+		--enable-unicode=ucs4 \
+	&& make -j "$(nproc)" \
+	&& make install \
+	&& ldconfig \
+	\
+	&& apt-get purge -y --auto-remove $buildDeps \
+	\
+	&& find /usr/local -depth \
+		\( \
+			\( -type d -a \( -name test -o -name tests \) \) \
+			-o \
+			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+		\) -exec rm -rf '{}' + \
+	&& rm -rf /usr/src/python
+
+# if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
+ENV PYTHON_PIP_VERSION 10.0.1
+
+RUN set -ex; \
+	\
+	apt-get update; \
+	apt-get install -y --no-install-recommends wget; \
+	rm -rf /var/lib/apt/lists/*; \
+	\
+	wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
+	\
+	apt-get purge -y --auto-remove wget; \
+	\
+	python get-pip.py \
+		--disable-pip-version-check \
+		--no-cache-dir \
+		"pip==$PYTHON_PIP_VERSION" \
 	; \
-	make -j "$(nproc)"; \
-	make install; \
+	pip --version; \
 	\
-	cd ..; \
-	rm -r src man manual; \
-	\
-	sed -ri \
-		-e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
-		-e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
-		"$HTTPD_PREFIX/conf/httpd.conf"; \
-	\
-	apt-get purge -y --auto-remove $buildDeps
-
-COPY httpd-foreground /usr/local/bin/
-RUN  chmod +x /usr/local/bin/httpd-foreground
-
-EXPOSE 80
-CMD ["/usr/local/bin/httpd-foreground"]
+	find /usr/local -depth \
+		\( \
+			\( -type d -a \( -name test -o -name tests \) \) \
+			-o \
+			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+		\) -exec rm -rf '{}' +; \
+	rm -f get-pip.py
