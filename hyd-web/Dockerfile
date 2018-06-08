@@ -22,9 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV GPG_KEY C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF
 ENV PYTHON_VERSION 2.7.15
-ENV DJANGO_VERSION 1.10.4
-
-RUN pip install mysqlclient psycopg2 django=="$DJANGO_VERSION"
 
 RUN set -ex \
 	&& buildDeps=" \
@@ -106,3 +103,7 @@ RUN set -ex; \
 			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
 		\) -exec rm -rf '{}' +; \
 	rm -f get-pip.py
+
+ENV DJANGO_VERSION 1.10.4
+
+RUN pip install django=="$DJANGO_VERSION"
