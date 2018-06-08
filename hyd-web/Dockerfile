@@ -254,9 +254,7 @@ RUN set -eux; \
 	\
 	apt-get purge -y --auto-remove $buildDeps
 
-	
 
-RUN  chmod +x /var/www/run 
 EXPOSE 80
 
-CMD ["/var/www/run"]
+CMD ["sh /var/www/run"]
