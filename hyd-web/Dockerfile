@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		libmysqlclient-dev \
 		libssl1.0.0 \
 		netbase \
-		gcc \
 	&& rm -rf /var/lib/apt/lists/*
 
 ENV GPG_KEY C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF
@@ -253,10 +252,11 @@ RUN set -eux; \
 		-e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
 		"$HTTPD_PREFIX/conf/httpd.conf"; \
 	\
+	pip install mod_wsgi; \
 	apt-get purge -y --auto-remove $buildDeps
 
 	
-RUN pip install mod_wsgi
+
 
 EXPOSE 80
 
