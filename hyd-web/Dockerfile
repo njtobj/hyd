@@ -254,6 +254,8 @@ RUN set -eux; \
 	\
 	apt-get purge -y --auto-remove $buildDeps
 
+	
+RUN pip install mod_wsgi
 
 EXPOSE 80
 
