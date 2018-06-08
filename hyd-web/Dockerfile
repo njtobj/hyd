@@ -147,7 +147,6 @@ RUN apt-get update \
 		liblua5.2-0 \
 		libnghttp2-14=$NGHTTP2_VERSION \
 		libpcre++0 \
-		libssl1.0.0=$OPENSSL_VERSION \
 		libxml2 \
 	&& rm -r /var/lib/apt/lists/*
 
@@ -178,7 +177,6 @@ RUN set -eux; \
 		liblua5.2-dev \
 		libnghttp2-dev=$NGHTTP2_VERSION \
 		libpcre++-dev \
-		libssl-dev=$OPENSSL_VERSION \
 		libxml2-dev \
 		zlib1g-dev \
 		make \
